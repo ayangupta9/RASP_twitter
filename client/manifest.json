@@ -1,0 +1,31 @@
+{
+  "name": "Twitter Image Capture Extension",
+  "version": "1.0",
+  "description": "Captures images from Twitter and sends them to the extension for display.",
+  "manifest_version": 3,
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://x.com/*",
+        "*://www.x.com/*"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ],
+  "icons": {
+    "128": "extension_logo.png"
+  }
+}
