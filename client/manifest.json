@@ -1,13 +1,14 @@
 {
-  "name": "Twitter Image Capture Extension",
-  "version": "1.0",
-  "description": "Captures images from Twitter and sends them to the extension for display.",
+  "name": "Social Media privacy Extension",
+  "version": "1.1",
+  "description": "Captures images from X (Twitter) and Instagram and Facebook sending them to the extension for display.",
   "manifest_version": 3,
   "permissions": [
     "activeTab",
     "scripting",
     "storage"
   ],
+  "host_permissions": ["https://*.instagram.com/*", "https://*.x.com/*", "https://*.twitter.com/*", "https://*.facebook.com/*"],
   "background": {
     "service_worker": "background.js"
   },
@@ -16,13 +17,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "*://x.com/*",
-        "*://www.x.com/*"
-      ],
-      "js": [
-        "content.js"
-      ]
+      "matches": ["https://*.instagram.com/*", "https://*.x.com/*", "https://*.twitter.com/*", "https://*.facebook.com/*"],
+      "js": ["content.js"]
     }
   ],
   "icons": {
