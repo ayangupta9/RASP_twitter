@@ -9,7 +9,7 @@ from run_model import get_prediction
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/upload', methods=['POST'])
+@app.route('/process_image', methods=['POST'])
 def upload_image():
     # print("Incoming request data:", request.json)  # Log the payload
     image_data = request.json.get("image")  # Access the 'image' key
@@ -35,4 +35,4 @@ def upload_image():
         return jsonify({"error": f"Error processing image: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, port=3000)
+    app.run(debug=True, port=8000)

@@ -11,7 +11,7 @@ model_folder = "./python_server/BEiT_XAI"
 image_processor = AutoImageProcessor.from_pretrained(model_folder)
 model = BeitForImageClassification.from_pretrained(model_folder)
 
-resize_fn = A.Resize(height=512, width=512, always_apply=True)
+resize_fn = A.Resize(height=224, width=224, always_apply=True)
 
 def get_prediction(image):
     img_t = torch.from_numpy(resize_fn(image=image)['image']).permute(2,0,1).unsqueeze(0).float()

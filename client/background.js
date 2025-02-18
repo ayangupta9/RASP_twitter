@@ -2,8 +2,6 @@
 
 // Variable to store the last captured image in memory.
 // (You could also use chrome.storage if you want it persisted.)
-// Variable to store the last captured image in memory.
-// (You could also use chrome.storage if you want it persisted.)
 let lastCapturedImage = null;
 let lastPrediction = null; // Variable to store the last prediction
 
@@ -31,7 +29,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       })
       .then((data) => {
         console.log("Server response:", data);
-        lastPrediction = data.prediction === "sensitive"
+        lastPrediction = data.prediction === 1
           ? "The image is sensitive."
           : "The image is non-sensitive.";
 
