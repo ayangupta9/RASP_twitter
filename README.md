@@ -55,10 +55,11 @@ Before you begin, ensure you have the following installed:
 ## Project Structure
 
 ```
-├── components/          # React components
-│   ├── ui/             # shadcn/ui components
-│   └── PopupContent.tsx # Main popup component
+
 ├── src/
+     components/          # React components
+│         ├── ui/             # shadcn/ui components
+│         └── PopupContent.tsx # Main popup component
 │   ├── lib/           # Utility functions
 │   ├── popup.html     # Popup HTML template
 │   ├── popup.tsx      # Popup entry point
