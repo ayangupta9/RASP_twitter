@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "Image Sensitivity Detector",
+  "version": "1.0",
+  "description": "Automatically detects and analyzes image sensitivity on social media platforms",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs",
+    "system.display",
+    "windows"
+  ],
+  "host_permissions": [
+    "*://*.x.com/*",
+    "*://*.instagram.com/*",
+    "*://*.facebook.com/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.x.com/*",
+        "*://*.instagram.com/*",
+        "*://*.facebook.com/*"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
