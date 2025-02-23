@@ -9,25 +9,51 @@ import { Badge } from "./ui/badge";
 export function PopupContent() {
   const [image, setImage] = useState<string | null>(null);
   const [prediction, setPrediction] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // Helper function to check if image is sensitive
+  const isSensitive = (prediction: string) => {
+    return prediction === "The image is sensitive.";
+  };
 
   useEffect(() => {
-    // Get initial state
-    chrome.runtime.sendMessage({ type: "GET_LAST_IMAGE_AND_PREDICTION" }, (response) => {
-      if (response?.image) {
-        setImage(response.image);
-        setPrediction(response.prediction);
-      }
-    });
+    let mounted = true;
+    let port: chrome.runtime.Port | null = null;
 
-    // Listen for updates
-    const messageListener = (message: any) => {
-      if (message.type === "PREDICTION_UPDATED") {
-        setPrediction(message.prediction);
-      }
+    const setupConnection = () => {
+      // Establish a long-lived connection
+      port = chrome.runtime.connect({ name: "popup" });
+
+      port.onMessage.addListener((message) => {
+        if (!mounted) return;
+
+        if (message.type === "PREDICTION_UPDATED") {
+          setPrediction(message.prediction);
+          setLoading(false);
+        }
+      });
+
+      // Get initial state
+      chrome.runtime.sendMessage({ type: "GET_LAST_IMAGE_AND_PREDICTION" }, (response) => {
+        if (!mounted) return;
+        
+        if (response?.image) {
+          setImage(response.image);
+          setPrediction(response.prediction);
+          setLoading(response.prediction === "Loading...");
+        }
+      });
     };
 
-    chrome.runtime.onMessage.addListener(messageListener);
-    return () => chrome.runtime.onMessage.removeListener(messageListener);
+    setupConnection();
+
+    // Cleanup
+    return () => {
+      mounted = false;
+      if (port) {
+        port.disconnect();
+      }
+    };
   }, []);
 
   return (
@@ -49,11 +75,9 @@ export function PopupContent() {
 
           <Separator />
 
-          {/* Main Content */}
           <div className="space-y-4">
             {image ? (
               <>
-                {/* Image Display */}
                 <Card>
                   <CardContent className="p-0 relative">
                     <div className="aspect-video relative overflow-hidden rounded-lg">
@@ -73,29 +97,38 @@ export function PopupContent() {
                   </CardContent>
                 </Card>
 
-                {/* Prediction */}
                 {prediction && (
                   <Alert
                     variant={
-                      prediction.includes("sensitive")
-                        ? "destructive"
-                        : prediction.includes("non-sensitive")
+                      loading
                         ? "default"
-                        : "destructive"
+                        : isSensitive(prediction)
+                        ? "destructive"
+                        : "success"
                     }
                   >
-                    {prediction.includes("sensitive") ? (
+                    {loading ? (
+                      <div className="animate-spin h-4 w-4">⌛</div>
+                    ) : isSensitive(prediction) ? (
                       <AlertCircle className="h-4 w-4" />
                     ) : (
                       <CheckCircle className="h-4 w-4" />
                     )}
                     <AlertTitle>Analysis Result</AlertTitle>
-                    <AlertDescription>{prediction}</AlertDescription>
+                    <AlertDescription>
+                      {loading ? (
+                        <div className="flex items-center space-x-2">
+                          <span>Analyzing image</span>
+                          <span className="animate-pulse">...</span>
+                        </div>
+                      ) : (
+                        prediction
+                      )}
+                    </AlertDescription>
                   </Alert>
                 )}
               </>
             ) : (
-              /* No Image State */
               <Card className="border-dashed">
                 <CardHeader className="text-center space-y-3">
                   <div className="mx-auto h-12 w-12 text-muted-foreground">
@@ -112,8 +145,8 @@ export function PopupContent() {
             )}
           </div>
 
-          {/* Footer */}
           <Separator />
+          
           <div className="flex flex-col space-y-2">
             <p className="text-sm text-muted-foreground">Supported platforms:</p>
             <div className="flex justify-between items-center">
@@ -136,3 +169,5 @@ export function PopupContent() {
     </div>
   );
 }
+
+export default PopupContent;
