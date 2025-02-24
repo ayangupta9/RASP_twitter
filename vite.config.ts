@@ -40,15 +40,15 @@ const manifest = {
   action: {
     default_popup: "src/popup.html",
     default_icon: {
-      "16": "icon16.png",
-      "48": "icon48.png",
-      "128": "icon128.png"
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
     }
   },
   icons: {
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 };
 
@@ -63,6 +63,11 @@ export default defineConfig({
         if (!fs.existsSync('dist')) {
           fs.mkdirSync('dist', { recursive: true });
         }
+        
+        // Ensure icons directory exists in dist
+        if (!fs.existsSync('dist/icons')) {
+          fs.mkdirSync('dist/icons', { recursive: true });
+        }
 
         // Write manifest.json
         fs.writeFileSync(
@@ -72,16 +77,21 @@ export default defineConfig({
 
         // Copy background.js and content.js
         try {
-          fs.copyFileSync('background.js', 'dist/background.js');
-          fs.copyFileSync('content.js', 'dist/content.js');
+          fs.copyFileSync('src/extension_helpers/background.js', 'dist/background.js');
+          fs.copyFileSync('src/extension_helpers/content.js', 'dist/content.js');
           
-          // Create placeholder icons (you should replace these with actual icons)
+          // Copy icons from public/icons to dist/icons
           const iconSizes = [16, 48, 128];
           iconSizes.forEach(size => {
-            fs.writeFileSync(
-              `dist/icon${size}.png`,
-              Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==', 'base64')
-            );
+            const iconPath = `public/icons/icon${size}.png`;
+            const destPath = `dist/icons/icon${size}.png`;
+            
+            if (fs.existsSync(iconPath)) {
+              fs.copyFileSync(iconPath, destPath);
+              console.log(`Copied icon: ${iconPath} -> ${destPath}`);
+            } else {
+              console.warn(`Warning: Icon not found at ${iconPath}`);
+            }
           });
           
           console.log('Successfully copied extension files to dist directory');
@@ -93,7 +103,7 @@ export default defineConfig({
   ],
   build: {
     outDir: 'dist',
-    emptyOutDir: false, // Changed to false to prevent deleting copied files
+    emptyOutDir: false, // Keep false to prevent deleting copied files
     rollupOptions: {
       input: {
         popup: path.resolve(__dirname, 'src/popup.html')
@@ -109,5 +119,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     }
-  }
+  },
+  publicDir: 'public' // Ensure Vite knows about the public directory
 });
