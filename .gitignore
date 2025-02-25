@@ -25,6 +25,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
 
 # vercel
@@ -33,3 +34,34 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 🔹 Python-related ignores
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore server logs
+logs/
+*.log
+
+# Ignore Python environment files
+venv/
+.virtualenv/
+*.egg-info/
+*.egg
+*.whl
+
+# Ignore BEiT model folder (optional if it's large or generated)
+python_server/BEiT_XAI/
+
+# Ignore test images and archives
+python_server/test_images/
+python_server/*.zip
+
+# Ignore temporary test scripts (optional)
+python_server/test_server.py
