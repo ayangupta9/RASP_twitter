@@ -22,6 +22,8 @@ export function PopupContent() {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState<boolean>(false);
   const [feedbackValue, setFeedbackValue] = useState<FeedbackValue | null>(null);
   const [feedbackComplete, setFeedbackComplete] = useState<boolean>(false);
+  const [platform, setPlatform] = useState<string | null>(null);
+
 
   // Helper function to check if image is sensitive
   const isSensitive = (prediction: string) => {
@@ -83,22 +85,70 @@ export function PopupContent() {
     }
   }, [loading]);
 
-  const handleFeedbackSubmit = () => {
-    if (!feedbackValue) return;
+  useEffect(() => {
+    // Function to detect platform
+    const detectPlatform = () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs.length === 0 || !tabs[0].url) return;
+  
+        const url = tabs[0].url;
+  
+        if (url.includes("x.com")) {
+          setPlatform("X");
+        } else if (url.includes("instagram.com")) {
+          setPlatform("Instagram");
+        } else if (url.includes("facebook.com")) {
+          setPlatform("Facebook");
+        } else {
+          setPlatform("Unknown");
+        }
+      });
+    };
+  
+    detectPlatform();
+  }, []);
+  
 
-    console.log("User feedback:", {
-      prediction,
-      userFeedback: feedbackValue
-    });
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackValue || !image || !prediction || !platform) return;
 
-    setFeedbackSubmitted(true);
-    setFeedbackComplete(true);
-
-    // Set a timeout to hide the thank you message after 5 seconds
-    setTimeout(() => {
-      setFeedbackSubmitted(false);
-    }, 5000);
+    setLoading(true);
+  
+    try {
+      // Prepare payload
+      const feedbackData = {
+        image, // Already base64 encoded
+        image_label: prediction, // The AI-generated label
+        model_prediction: prediction, // Model's predicted category
+        user_feedback: feedbackValue, // User feedback (sensitive, not-sensitive, unsure)
+        platform // Default, can be changed dynamically
+      };
+  
+      // Send feedback data to backend
+      const response = await fetch("http://localhost:8000/submit_feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(feedbackData),
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok) {
+        console.log("Feedback submitted successfully:", result);
+        setFeedbackSubmitted(true);
+        setFeedbackComplete(true);
+      } else {
+        console.error("Error submitting feedback:", result.error);
+      }
+    } catch (error) {
+      console.error("Failed to submit feedback:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+  
 
   return (
     <div className="w-[400px] max-h-[600px] bg-background p-4">
@@ -199,19 +249,19 @@ export function PopupContent() {
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="sensitive" id="sensitive" />
                       <label htmlFor="sensitive" className="text-sm font-medium">
-                        This is sensitive content
+                        The Image is Sensitive
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="not-sensitive" id="not-sensitive" />
                       <label htmlFor="not-sensitive" className="text-sm font-medium">
-                        This is not sensitive content
+                      The Image is not Sensitive
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="unsure" id="unsure" />
                       <label htmlFor="unsure" className="text-sm font-medium">
-                        I'm not sure
+                        I am not sure
                       </label>
                     </div>
                   </RadioGroup>

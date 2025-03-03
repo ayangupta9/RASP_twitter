@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         chrome.action.openPopup();
         
         // Process the image
-        fetch("http://localhost:3000/upload", {
+        fetch("http://localhost:8000/process_image", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
