@@ -11,7 +11,9 @@ CORS(app)
 
 @app.route('/')
 def index():
+    print("Index route hit!")  # For debug
     return jsonify({'message': 'hello'}), 200
+
 
 @app.route('/process_image', methods=['POST'])
 def upload_image():
@@ -73,11 +75,11 @@ def submit_user_feedback():
 
         return jsonify(feedback_response), 200
 
-
     except Exception as e:
         print("Error:", str(e))  # Log any server-side error
         return jsonify({"error": f"Error submitting feedback: {str(e)}"}), 500
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=9000, debug=False, ssl_context=("cert.pem", "key.pem"))
+    print("Running my actual Flask file...")
+    app.run(host="0.0.0.0", port=9000, debug=False)
