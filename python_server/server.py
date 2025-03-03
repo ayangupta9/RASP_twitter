@@ -9,6 +9,10 @@ from utils import get_prediction, submit_feedback
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/')
+def index():
+    return jsonify({'message': 'hello'}), 200
+
 @app.route('/process_image', methods=['POST'])
 def upload_image():
     """Processes the image and returns the model prediction."""
@@ -74,5 +78,6 @@ def submit_user_feedback():
         print("Error:", str(e))  # Log any server-side error
         return jsonify({"error": f"Error submitting feedback: {str(e)}"}), 500
 
+
 if __name__ == "__main__":
-    app.run(debug=True, port=8000)
+    app.run(host="0.0.0.0", port=9000, debug=False, ssl_context=("cert.pem", "key.pem"))

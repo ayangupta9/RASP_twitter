@@ -47,8 +47,12 @@ def get_prediction(image):
 
 def submit_feedback(image, image_label, model_prediction, user_feedback, platform):
     try:
+        prediction = 0 if model_prediction == "The image is sensitive." else 1 # Added to fix need_for_train logic 
+        user_prediction = 0 if user_feedback == "sensitive" else 1 # Added to fix need_for_train logic 
+       
+
         # Check if model_prediction and user_feedback are opposite
-        is_opposite = model_prediction != user_feedback
+        is_opposite = prediction != user_prediction
 
         # Prepare data for insertion
         feedback_data = {
