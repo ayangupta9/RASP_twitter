@@ -15,7 +15,8 @@ const manifest = {
     "storage",
     "tabs",
     "system.display",
-    "windows"
+    "windows",
+    "webNavigation"
   ],
   host_permissions: [
     "*://*.x.com/*",

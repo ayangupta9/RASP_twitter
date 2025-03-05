@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { PopupContent } from './components/PopupContent';
+import { ThemeProvider } from './components/ThemeProvider';
 import './style.css';
 
 const container = document.getElementById('root');
@@ -8,4 +9,8 @@ if (!container) {
 }
 
 const root = createRoot(container);
-root.render(<PopupContent />);
+root.render(
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <PopupContent />
+  </ThemeProvider>
+);
