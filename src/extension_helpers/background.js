@@ -44,7 +44,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         })
         .then((data) => {
             console.log("Server response received:", data);
-            lastPrediction = data.prediction === 0
+            lastPrediction = data.prediction === 1
                 ? "The image is sensitive."
                 : "The image is non-sensitive.";
 
