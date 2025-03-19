@@ -3,7 +3,6 @@ import os
 from transformers import AutoImageProcessor, BeitForImageClassification
 import torch
 import torch.nn as nn
-import albumentations as A
 import matplotlib.pyplot as plt
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
@@ -11,15 +10,16 @@ import uuid
 from bson.binary import Binary
 from datetime import datetime
 from dotenv import load_dotenv
+from retraining import short_finetune_and_compare
+from apscheduler.schedulers.background import BackgroundScheduler
+from PIL import Image
+import io
 
-model_folder = "./BEiT_XAI"
-image_processor = AutoImageProcessor.from_pretrained(model_folder)
+model_folder = f"{os.getenv('MODEL_DIR')}/"
 model = BeitForImageClassification.from_pretrained(model_folder)
+print(f'Model using weights from {model_folder}')
+image_processor = AutoImageProcessor.from_pretrained(model_folder)
 
-resize_fn = A.Resize(height=224, width=224, always_apply=True)
-
-
-# Load environment variables from .env file
 load_dotenv()
 
 # Fetch values from environment variables
@@ -39,7 +39,7 @@ db = client[MONGO_DB_NAME]  # Database
 collection = db["user-feedback"]  # Collection
 
 def get_prediction(image):
-    img_t = torch.from_numpy(resize_fn(image=image)['image']).permute(2,0,1).unsqueeze(0).float()
+    img_t = image_processor(images=image, return_tensors="pt")['pixel_values']
     pred = model(img_t)
     print(torch.softmax(pred.logits, dim=1))
     return torch.argmax(pred.logits.detach()).item()
@@ -73,3 +73,54 @@ def submit_feedback(image, image_label, model_prediction, user_feedback, platfor
     
     except Exception as e:
         return {"error": str(e)}
+    
+    
+def check_and_finetune():
+    """
+    Checks MongoDB for new samples where 'need_for_train' is True.
+    If found, runs the fine-tuning process and updates MongoDB entries.
+    """
+    print(f"[{datetime.now()}] Checking MongoDB for new samples...")
+
+    # Fetch samples from MongoDB
+    new_samples = list(collection.find({"need_for_train": True}))
+
+    if not new_samples:
+        print(f"[{datetime.now()}] No new samples found. Skipping fine-tuning.")
+        return
+
+    # Prepare data for fine-tuning
+    processed_samples = [
+        {"image": Image.open(io.BytesIO(bytes(doc["image"]))),
+         "label": 1 if doc["user_feedback"] in [1, "sensitive"] else 0}
+        for doc in new_samples
+    ]
+
+    # Extract document IDs for MongoDB update
+    document_ids = [doc['_id'] for doc in new_samples]
+
+    # Run fine-tuning
+    print(f"[{datetime.now()}] Running fine-tuning...")
+    short_finetune_and_compare(
+        new_samples=processed_samples,
+        base_dir=os.getenv('MODEL_DIR'),
+        best_dir="./finetuned_Beit",
+        num_epochs=2,
+        batch_size=4,
+        document_ids=document_ids
+    )    
+    
+    print(f"[{datetime.now()}] Fine-tuning completed successfully.")
+
+# -------------------------------------------------
+# Step 2: Scheduler Configuration
+# -------------------------------------------------
+def start_scheduler():
+    """
+    Starts the APScheduler background scheduler to run every 24 hours.
+    """
+    check_and_finetune()
+    # scheduler = BackgroundScheduler()
+    # scheduler.add_job(check_and_finetune, 'interval', hours=1)
+    # scheduler.start()
+    print("[Scheduler Started] Checking MongoDB every 24 hours...")

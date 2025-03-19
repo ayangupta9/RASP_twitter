@@ -65,3 +65,4 @@ python_server/*.zip
 
 # Ignore temporary test scripts (optional)
 python_server/test_server.py
+python_server/temp*

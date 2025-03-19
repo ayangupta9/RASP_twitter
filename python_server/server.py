@@ -4,7 +4,7 @@ import base64
 import numpy as np
 from PIL import Image
 import io
-from utils import get_prediction, submit_feedback
+from utils import get_prediction, submit_feedback, start_scheduler
 
 app = Flask(__name__)
 CORS(app)
@@ -81,5 +81,6 @@ def submit_user_feedback():
 
 
 if __name__ == "__main__":
+    # start_scheduler()
     print("Running my actual Flask file...")
     app.run(host="0.0.0.0", port=9000, debug=False)
